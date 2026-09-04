@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import log from "../assets/images/log.jpg";
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import {
   FiMenu,
   FiX,
@@ -11,6 +11,10 @@ import {
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const navigate = useNavigate();
 
   const navLinks = [
     { name: "Buy", path: "/buy" },
@@ -19,13 +23,27 @@ const Navbar = () => {
     { name: "Agents", path: "/agents" },
   ];
 
+  const handleSearch = (e) => {
+    e.preventDefault();
+
+    const search = searchTerm.trim();
+
+    if (!search) {
+      navigate("/properties");
+      return;
+    }
+
+    navigate(`/properties?search=${encodeURIComponent(search)}`);
+
+    setIsSearchOpen(false);
+    setSearchTerm("");
+  };
+
   return (
     <header className="fixed inset-x-0 top-0 z-50 px-4 pt-4 sm:px-6 lg:px-8">
       <nav className="mx-auto max-w-7xl rounded-2xl border border-slate-200 bg-white shadow-[0_10px_40px_rgba(15,23,42,0.08)]">
 
-        {/* =========================
-            MAIN NAVBAR
-        ========================== */}
+        {/* MAIN NAVBAR */}
         <div className="flex h-[72px] items-center justify-between px-4 sm:px-6">
 
           {/* LOGO */}
@@ -53,11 +71,8 @@ const Navbar = () => {
             </div>
           </Link>
 
-          {/* =========================
-              DESKTOP NAVIGATION
-          ========================== */}
+          {/* DESKTOP NAVIGATION */}
           <div className="hidden items-center gap-1 lg:flex">
-
             {navLinks.map((link) => (
               <NavLink
                 key={link.name}
@@ -81,24 +96,51 @@ const Navbar = () => {
                 )}
               </NavLink>
             ))}
-
           </div>
 
-          {/* =========================
-              DESKTOP ACTIONS
-          ========================== */}
+          {/* DESKTOP ACTIONS */}
           <div className="hidden items-center gap-2 lg:flex">
 
-            {/* Search */}
-            <Link
-              to="/properties"
-              className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-500 transition hover:bg-slate-50 hover:text-slate-900"
-              aria-label="Search properties"
-            >
-              <FiSearch size={18} />
-            </Link>
+            {/* SEARCH */}
+            {isSearchOpen ? (
+              <form
+                onSubmit={handleSearch}
+                className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5"
+              >
+                <FiSearch size={17} className="text-slate-400" />
 
-            {/* Sign In */}
+                <input
+                  autoFocus
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Search properties..."
+                  className="w-44 bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400"
+                />
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsSearchOpen(false);
+                    setSearchTerm("");
+                  }}
+                  className="text-slate-400 transition hover:text-slate-900"
+                >
+                  <FiX size={17} />
+                </button>
+              </form>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setIsSearchOpen(true)}
+                className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-500 transition hover:bg-slate-50 hover:text-slate-900"
+                aria-label="Search properties"
+              >
+                <FiSearch size={18} />
+              </button>
+            )}
+
+            {/* SIGN IN */}
             <Link
               to="/login"
               className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 hover:text-slate-900"
@@ -107,7 +149,7 @@ const Navbar = () => {
               Sign In
             </Link>
 
-            {/* List Property */}
+            {/* LIST PROPERTY */}
             <Link
               to="/list-property"
               className="group flex items-center gap-2 rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-amber-500 hover:shadow-lg"
@@ -118,12 +160,9 @@ const Navbar = () => {
               />
               List Property
             </Link>
-
           </div>
 
-          {/* =========================
-              MOBILE BUTTON
-          ========================== */}
+          {/* MOBILE BUTTON */}
           <button
             type="button"
             onClick={() => setIsOpen(!isOpen)}
@@ -135,9 +174,7 @@ const Navbar = () => {
           </button>
         </div>
 
-        {/* =========================
-            MOBILE MENU
-        ========================== */}
+        {/* MOBILE MENU */}
         <div
           className={`grid transition-all duration-300 ease-in-out lg:hidden ${
             isOpen
@@ -146,12 +183,10 @@ const Navbar = () => {
           }`}
         >
           <div className="overflow-hidden">
-
             <div className="border-t border-slate-100 px-4 pb-5 pt-4 sm:px-6">
 
-              {/* Mobile Navigation */}
+              {/* MOBILE NAVIGATION */}
               <div className="space-y-1">
-
                 {navLinks.map((link) => (
                   <NavLink
                     key={link.name}
@@ -170,20 +205,32 @@ const Navbar = () => {
                     <span className="text-xs">→</span>
                   </NavLink>
                 ))}
-
               </div>
 
-              {/* Mobile Search */}
-              <Link
-                to="/properties"
-                onClick={() => setIsOpen(false)}
-                className="mt-3 flex items-center gap-3 rounded-xl border border-slate-200 px-4 py-3.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
+              {/* MOBILE SEARCH */}
+              <form
+                onSubmit={handleSearch}
+                className="mt-3 flex items-center gap-3 rounded-xl border border-slate-200 px-4 py-3"
               >
-                <FiSearch size={17} />
-                Search Properties
-              </Link>
+                <FiSearch size={17} className="text-slate-400" />
 
-              {/* Mobile Actions */}
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Search properties..."
+                  className="w-full bg-transparent text-sm outline-none placeholder:text-slate-400"
+                />
+
+                <button
+                  type="submit"
+                  className="rounded-lg bg-slate-900 px-3 py-2 text-xs font-bold text-white transition hover:bg-amber-500"
+                >
+                  Search
+                </button>
+              </form>
+
+              {/* MOBILE ACTIONS */}
               <div className="mt-4 grid grid-cols-2 gap-2 border-t border-slate-100 pt-4">
 
                 <Link
@@ -205,11 +252,9 @@ const Navbar = () => {
                 </Link>
 
               </div>
-
             </div>
           </div>
         </div>
-
       </nav>
     </header>
   );
